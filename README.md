@@ -12,5 +12,5 @@ All the pin assignments are at the top of the file.
 
 This code also works on standard PS2 keyboards.
 
-When the keyboard is plugged in the top status lights should link once indicating the board is ready.
+When the keyboard is plugged in the top status lights should blink once indicating the board is ready.
 
