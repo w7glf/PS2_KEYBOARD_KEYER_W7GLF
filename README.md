@@ -1,5 +1,5 @@
 # PS2_KEYBOARD_KEYER_W7GLF
-PS2 CW Keyboard Keyer For PERIXX Keyboards
+PS2 CW Keyboard Keyer For PERIXX-409 Keyboards
 
 This is code adapted from Mark VandeWettering K6HX and Jan Swanepoel to allow an Arduino NANO or UNO to snd CW
 using the Perixx-409 keyboard.  This keyboard requires an initial command to enable its ability to send SCAN codes.
