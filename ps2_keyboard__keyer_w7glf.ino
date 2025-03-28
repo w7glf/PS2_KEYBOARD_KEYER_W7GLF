@@ -1,7 +1,9 @@
 #include <Keyboard.h>
 #include <KeyboardLayout.h>
 
-#include <PS2Keyboard.h>
+// W7GLF - Use local files and not library so I can use Function Keys
+//#include <PS2Keyboard.h>
+#include "PS2Keyboard.h"
  
 //  _____ _            _          _      _            __  __                 
 // |_   _| |_  ___    /_\  _ _ __| |_  _(_)_ _  ___  |  \/  |___ _ _ ___ ___ 
@@ -24,7 +26,10 @@
 /*
  * Code to reset keyboard for PS2 Keyboard Article
  * Jan Swanepoel, 2019 - added by W7GLF to allow working with Perixx keyboard
- *                       which requires a PS/2 keyboard comamnd to enable keycode scanning.  
+ *                       which requires a PS/2 keyboard comamnd to enable keycode scanning. 
+ * 28-JAN-2025  Modified code to allow the use of Macros called up ny using the Function keys.  I also added DEL key
+ *              to send 8 dots (error) and _ (underscore) to send prosign AS (standby).
+ * 
 */
  
 ////////////////////////////////////////////////////////////////////////
@@ -39,6 +44,7 @@
 #define QUEUESIZE       (128)
 #define QUEUEMASK       (QUEUESIZE-1)
 #define DEBUG false
+#define USE_FUNCTION_KEYS true
 
 int aborted = 0 ;
 int qhead = 0 ;
@@ -53,9 +59,17 @@ unsigned int wpm = 15;
 #define keyboard_data 4 
 #define keyboard_clock 3 
 #define tpin 10                 // tone pin
+#define SPEAKER false           // Generate tones
 int ditlen = 1200 / wpm ;
 
-#define CQ_MSG "CQ CQ CQ DE W7RNB W7RNB BK\r\n"
+#define CALLSIGN "W7GLF "
+
+char CQ_FD_MSG [] = "CQ CQ FD DE " CALLSIGN CALLSIGN "K\r\n";
+char CALL_MSG [] = CALLSIGN CALLSIGN "K K\r\n";
+char RSP_FD_MSG [] = "1E 1E WWA WWA 73 TU\r\n";
+char QRZ_FD_MSG [] = "QRZ FD DE " CALLSIGN "K\r\n";
+char CQ_MSG [] = "CQ CQ CQ DE " CALLSIGN CALLSIGN "K\r\n";
+char RSP_MSG [] = "RRR 73 TU " CALLSIGN ": E E\r\n";
 
 void
 queueadd(char ch)
@@ -167,9 +181,45 @@ ps2poll()
                 Serial.println(F("== FLUSH ==")) ;
                 aborted = 1 ;
                 break ;
-            case '%':
-                queueadd(CQ_MSG) ;
+#if USE_FUNCTION_KEYS
+            case PS2_F1:
+                queueadd(CQ_FD_MSG);
                 break ;
+            case PS2_F2:
+                queueadd(CALL_MSG);
+                break ;
+            case PS2_F3:
+                queueadd(RSP_FD_MSG);
+                break ;
+            case PS2_F4:
+                queueadd(QRZ_FD_MSG);
+                break ;
+            case PS2_F5:
+                queueadd(CQ_MSG);
+                break ;
+            case PS2_F6:
+                queueadd(RSP_MSG);
+                break ;
+#else
+            case '!':
+                queueadd(CQ_FD_MSG);
+                break ;
+            case '@':
+                queueadd(CALL_MSG);
+                break ;
+            case '#':
+                queueadd(RSP_FD_MSG);
+                break ;
+            case '$':
+                queueadd(QRZ_FD_MSG);
+                break ;
+            case '%':
+                queueadd(CQ_MSG);
+                break ;
+            case '^':
+                queueadd(RSP_MSG);
+                break ;
+#endif
             default:
                 queueadd(ch) ;
                 break ;
@@ -193,24 +243,31 @@ scale()
   int i ;
    
   for (i=0; i<=12; i++) {
-      tone(tpin, (int)f) ;
+      #if SPEAKER 
+         tone(tpin, (int)f) ;
+      #endif
       f *= 1059L ;
       f /= 1000L ;
       Serial.println(f) ;
       delay(300) ;
   }
-  noTone(tpin) ;
-       
+  #if SPEAKER
+     noTone(tpin) ;
+  #endif       
 }
  
 void
 dit()
 {
     digitalWrite(pin, HIGH) ;
-    tone(tpin, freq) ;
+    #if SPEAKER 
+       tone(tpin, freq) ;
+    #endif
     mydelay(ditlen) ;
     digitalWrite(pin, LOW) ;
-    noTone(tpin) ;
+    #if SPEAKER 
+      noTone(tpin) ;
+    #endif
     mydelay(ditlen) ;
 }
  
@@ -218,10 +275,14 @@ void
 dah()
 {
     digitalWrite(pin, HIGH) ;
-    tone(tpin, freq) ;
+    #if SPEAKER 
+       tone(tpin, freq) ;
+    #endif
     mydelay(3*ditlen) ;
     digitalWrite(pin, LOW) ;
-    noTone(tpin) ;
+    #if SPEAKER 
+      noTone(tpin) ;
+    #endif
     mydelay(ditlen) ;
 }
  
@@ -471,6 +532,8 @@ send(char ch)
         sendcode(0b1011010) ;
     else if (ch == ':')         // SK
         sendcode(0b1000101) ;
+    else if (ch == '_')         // AS Standby
+        sendcode(0b101000) ;
     else if (ch == PS2_DELETE)
         sendcode_error() ;
     else
@@ -492,14 +555,14 @@ setup()
    
     pinMode(pin, OUTPUT) ;
     pinMode(tpin, OUTPUT) ; 
+  // Set pins to input with pull-up resistors
+  pinMode(pinClock, INPUT_PULLUP);
+  pinMode(pinData, INPUT_PULLUP);
     Serial.begin(9600) ;
     kbd.begin(keyboard_data, keyboard_clock) ;
     Serial.println(F("Morse Code Keyboard by K6HX")) ;
     Serial.println(F("Adaptation for Perixx PS2 keyboard by W7GLF")) ;
   
-  // Set pins to input with pull-up resistors
-  pinMode(pinClock, INPUT_PULLUP);
-  pinMode(pinData, INPUT_PULLUP);
 
   delay(100);
 

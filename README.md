@@ -14,3 +14,7 @@ This code also works on standard PS2 keyboards.
 
 When the keyboard is plugged in the top status lights should blink once indicating the board is ready.
 
+Made a few other improvements.  Now macros are called using function keys and added underscore to send AS.
+In order to get function keys to work I had to move files from ps2keyboard PJRC library into this folder.
+These are the files ps2keyboard.cpp, ps2keyboard.h (changed to handle function keys), and int_pins.h
+
