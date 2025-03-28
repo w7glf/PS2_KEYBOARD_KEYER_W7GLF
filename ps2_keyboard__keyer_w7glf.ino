@@ -29,6 +29,7 @@
  *                       which requires a PS/2 keyboard comamnd to enable keycode scanning. 
  * 28-JAN-2025  Modified code to allow the use of Macros called up ny using the Function keys.  I also added DEL key
  *              to send 8 dots (error) and _ (underscore) to send prosign AS (standby).
+ *              Added PAGE_DOWN to do Key Down and PAGE_UP to do Key Up
  * 
 */
  
@@ -135,8 +136,10 @@ ps2poll()
             case PS2_TAB:
                 break ;
             case PS2_PAGEDOWN:
+                keydown();
                 break ;
             case PS2_PAGEUP:
+                keyup();
                 break ;
             case PS2_LEFTARROW:
                 if (freq < 300) break;
@@ -284,6 +287,18 @@ dah()
       noTone(tpin) ;
     #endif
     mydelay(ditlen) ;
+}
+ 
+void
+keydown()
+{
+    digitalWrite(pin, HIGH) ;
+}
+ 
+void
+keyup()
+{
+    digitalWrite(pin, LOW) ;
 }
  
 void
