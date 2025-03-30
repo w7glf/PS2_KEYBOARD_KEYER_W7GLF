@@ -66,6 +66,7 @@
 #define PS2_F10				16
 #define PS2_F11				17
 #define PS2_F12				18
+#define PS2_SF12			19
 #define PS2_SCROLL			0
 
 #define PS2_INVERTED_EXCLAMATION	161 // ¡

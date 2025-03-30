@@ -30,6 +30,7 @@
  * 28-JAN-2025  Modified code to allow the use of Macros called up ny using the Function keys.  I also added DEL key
  *              to send 8 dots (error) and _ (underscore) to send prosign AS (standby).
  *              Added PAGE_DOWN to do Key Down and PAGE_UP to do Key Up
+ * 29-JAN-2025  Function key F12 - (ON/OFF) Use farnsworth spacing 30 WPM with 15 WPM spacing.   
  * 
 */
  
@@ -70,7 +71,10 @@ char CALL_MSG [] = CALLSIGN CALLSIGN "K K\r\n";
 char RSP_FD_MSG [] = "1E 1E WWA WWA 73 TU\r\n";
 char QRZ_FD_MSG [] = "QRZ FD DE " CALLSIGN "K\r\n";
 char CQ_MSG [] = "CQ CQ CQ DE " CALLSIGN CALLSIGN "K\r\n";
-char RSP_MSG [] = "RRR 73 TU " CALLSIGN ": E E\r\n";
+char RSP_MSG [] = "NAME IS RAY RAY=QTH is KIRKLAND,WA KIRKLAND,WA=HW CPY?\r\n";
+char LAST_MSG [] = "RRR 73 TU " CALLSIGN ": E E\r\n";
+
+boolean farnsworth=false;
 
 void
 queueadd(char ch)
@@ -167,7 +171,7 @@ ps2poll()
 #endif                
                 break ;
             case PS2_DOWNARROW:
-                if (wpm > 30) break;
+                if (wpm > 35) break;
                 wpm += 1; 
                 ditlen = 1200 / wpm ;
 #if DEBUG 
@@ -203,6 +207,12 @@ ps2poll()
             case PS2_F6:
                 queueadd(RSP_MSG);
                 break ;
+            case PS2_F7:
+                queueadd(LAST_MSG);
+                break ;
+            case PS2_SF12:
+                farnsworth = !farnsworth; 
+                break ;
 #else
             case '!':
                 queueadd(CQ_FD_MSG);
@@ -221,6 +231,9 @@ ps2poll()
                 break ;
             case '^':
                 queueadd(RSP_MSG);
+                break ;
+            case '&':
+                queueadd(LAST_MSG);
                 break ;
 #endif
             default:
@@ -266,12 +279,20 @@ dit()
     #if SPEAKER 
        tone(tpin, freq) ;
     #endif
-    mydelay(ditlen) ;
+    if (farnsworth) {
+      mydelay(1200 / 30);
+    } else {
+      mydelay(ditlen) ;
+    }
     digitalWrite(pin, LOW) ;
     #if SPEAKER 
       noTone(tpin) ;
     #endif
-    mydelay(ditlen) ;
+    if (farnsworth) {
+      mydelay(1200 / 30);
+    } else {
+      mydelay(ditlen) ;
+    }
 }
  
 void
@@ -281,12 +302,20 @@ dah()
     #if SPEAKER 
        tone(tpin, freq) ;
     #endif
-    mydelay(3*ditlen) ;
+    if (farnsworth) {
+      mydelay(3*(1200 / 30));
+    } else {
+      mydelay(3*ditlen) ;
+    }
     digitalWrite(pin, LOW) ;
     #if SPEAKER 
       noTone(tpin) ;
     #endif
-    mydelay(ditlen) ;
+    if (farnsworth) {
+      mydelay(1200 / 30);
+    } else {
+      mydelay(ditlen) ;
+    }
 }
  
 void
@@ -555,8 +584,10 @@ send(char ch)
         return ;                // ignore anything else
  
     if (!aborted) {
+#if DEBUG
       Serial.print(ch) ;
       if (ch == 13) Serial.print((char) 10) ;
+#endif
     }
     aborted = 0 ;
 }

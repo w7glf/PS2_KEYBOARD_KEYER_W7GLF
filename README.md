@@ -18,3 +18,6 @@ Made a few other improvements.  Now macros are called using function keys and ad
 In order to get function keys to work I had to move files from ps2keyboard PJRC library into this folder.
 These are the files ps2keyboard.cpp, ps2keyboard.h (changed to handle function keys), and int_pins.h
 
+I added the ability to do Farnsworth with characters at 30 WPM.  To enable/disable it use shift F12.
+
+
