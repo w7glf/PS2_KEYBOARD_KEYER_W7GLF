@@ -44,7 +44,7 @@
 #define PS2_BACKSPACE			127
 #define PS2_ESC				27
 #define PS2_INSERT			0
-#define PS2_DELETE			127
+#define PS2_DELETE			126
 #define PS2_HOME			0
 #define PS2_END				0
 #define PS2_PAGEUP			25

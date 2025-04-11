@@ -31,6 +31,7 @@
  *              to send 8 dots (error) and _ (underscore) to send prosign AS (standby).
  *              Added PAGE_DOWN to do Key Down and PAGE_UP to do Key Up
  * 29-JAN-2025  Function key F12 - (ON/OFF) Use farnsworth spacing 30 WPM with 15 WPM spacing.   
+ * 31-JAN-2025  Reverse DOWN and UP arrow speed control.  Down now means slower and UP means faster.   
  * 
 */
  
@@ -54,7 +55,7 @@ int qtail = 0 ;
 char queue[QUEUESIZE] ;
  
 unsigned int freq = 700;
-unsigned int wpm = 15;
+unsigned int wpm = 13;
 
 ////////////////////////////////////////////////////////////////////////
 #define pin 13                  // blink the LED for now...
@@ -161,7 +162,7 @@ ps2poll()
                 Serial.println(freq) ;                
 #endif                
                 break ;
-            case PS2_UPARROW:
+            case PS2_DOWNARROW:
                 if (wpm < 5) break;
                 wpm -= 1; 
                 ditlen = 1200 / wpm ;
@@ -170,7 +171,7 @@ ps2poll()
                 Serial.println(wpm) ;                
 #endif                
                 break ;
-            case PS2_DOWNARROW:
+            case PS2_UPARROW:
                 if (wpm > 35) break;
                 wpm += 1; 
                 ditlen = 1200 / wpm ;
@@ -180,7 +181,7 @@ ps2poll()
 #endif                
                 break ;
             case PS2_DELETE:
-                queueadd(0x7F) ; // code for DELETE
+                queueadd(PS2_DELETE) ; // code for DELETE
                 break ;
             case PS2_ESC:
                 queueflush() ;
@@ -567,17 +568,21 @@ send(char ch)
     else if (ch == '/')
         sendcode(0b110010) ;
     else if (ch == '+')
-        sendcode(0b101010) ;
+        sendcode(0b101010) ;    // AR
     else if (ch == '-')
         sendcode(0b1100001) ;
     else if (ch == '=')
         sendcode(0b110001) ;
     else if (ch == '@')         // hardly anyone knows this!
         sendcode(0b1011010) ;
-    else if (ch == ':')         // SK
-        sendcode(0b1000101) ;
-    else if (ch == '_')         // AS Standby
-        sendcode(0b101000) ;
+    else if (ch == '>')
+        sendcode(0b1000101) ;   // SK
+    else if (ch == '[')
+        sendcode(0b101000) ;    // AS - Standby
+    else if (ch == ':') 
+        sendcode(0b110110) ;   // KN
+    else if (ch == ';')
+        sendcode(0b10101) ;     // AA New line
     else if (ch == PS2_DELETE)
         sendcode_error() ;
     else
